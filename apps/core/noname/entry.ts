@@ -49,6 +49,8 @@ https://www.gnu.org/licenses/gpl-3.0.html
 		await boot();
 	} catch (e) {
 		console.error(e);
+		const loadingScreen = document.getElementById("loading-screen");
+		if (loadingScreen) loadingScreen.remove();
 		alert(`《无名杀》加载内容失败
 浏览器UA信息: 
 ${userAgentLowerCase}

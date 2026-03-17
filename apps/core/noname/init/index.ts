@@ -595,6 +595,9 @@ export async function boot() {
 	}
 
 	ui.create.arena();
+	// 移除加载画面
+	const loadingScreen = document.getElementById("loading-screen");
+	if (loadingScreen) loadingScreen.remove();
 	game.createEvent("game", false).setContent(lib.init.start);
 	if (lib.mode[lib.config.mode] && lib.mode[lib.config.mode].fromextension) {
 		const startstr = currentMode.start.toString();
