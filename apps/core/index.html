@@ -174,10 +174,10 @@
 	<script>
 		// ====== 登录验证配置 ======
 		// 设置访问密码: 修改下面的 SHA-256 哈希值
-		// 默认密码: noname
+		// 默认密码: 666888
 		// 生成新哈希: 浏览器控制台运行
 		//   crypto.subtle.digest("SHA-256", new TextEncoder().encode("你的密码")).then(b => console.log(Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,"0")).join("")))
-		const PASSWORD_HASH = "c82b2b4275a63a897ab02840a3af2e76b0e20650cc79b80adc4558ab1b465b7c";
+		const PASSWORD_HASH = "6d19ca72de1fe7973e5a763cdbaf47af34674d4f45a8a2cacd881b751d680a4f";
 		// 设为 false 可关闭登录验证
 		const AUTH_ENABLED = true;
 		// ====== 配置结束 ======
