@@ -188,7 +188,8 @@
 		}
 
 		function loadGame() {
-			document.getElementById("login-gate").classList.add("hidden");
+			const gate = document.getElementById("login-gate");
+			if (gate) gate.classList.add("hidden");
 			const s = document.createElement("script");
 			s.type = "module";
 			s.src = "./noname/entry.ts";
