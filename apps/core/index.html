@@ -10,16 +10,21 @@
 	<meta name="viewport" content="user-scalable=no, viewport-fit=cover" />
 	<title>无名杀</title>
 	<style>
+		body {
+			margin: 0;
+			background: #1a1a2e;
+		}
 		#login-gate {
 			position: fixed;
 			top: 0; left: 0; right: 0; bottom: 0;
 			background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-			display: flex;
+			display: none;
 			align-items: center;
 			justify-content: center;
 			z-index: 999999;
 			font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
 		}
+		#login-gate.visible { display: flex; }
 		#login-gate.hidden { display: none; }
 		#login-box {
 			background: rgba(255, 255, 255, 0.08);
@@ -187,9 +192,12 @@
 			return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 		}
 
+		let gameLoaded = false;
 		function loadGame() {
+			if (gameLoaded) return;
+			gameLoaded = true;
 			const gate = document.getElementById("login-gate");
-			if (gate) gate.classList.add("hidden");
+			if (gate) gate.classList.remove("visible");
 			const s = document.createElement("script");
 			s.type = "module";
 			s.src = "./noname/entry.ts";
@@ -199,7 +207,11 @@
 		(function checkAuth() {
 			if (!AUTH_ENABLED) { loadGame(); return; }
 			if (localStorage.getItem("noname_auth") === PASSWORD_HASH) { loadGame(); return; }
-			// 显示登录界面，等待用户输入
+			// 需要验证，显示登录界面
+			document.addEventListener("DOMContentLoaded", () => {
+				const gate = document.getElementById("login-gate");
+				if (gate) gate.classList.add("visible");
+			});
 		})();
 
 		async function doLogin() {
