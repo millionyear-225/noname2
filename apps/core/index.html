@@ -9,6 +9,70 @@
 	<!-- 禁止缩放 手机端全屏 -->
 	<meta name="viewport" content="user-scalable=no, viewport-fit=cover" />
 	<title>无名杀</title>
+	<style>
+		#login-gate {
+			position: fixed;
+			top: 0; left: 0; right: 0; bottom: 0;
+			background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 999999;
+			font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+		}
+		#login-gate.hidden { display: none; }
+		#login-box {
+			background: rgba(255, 255, 255, 0.08);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			border-radius: 16px;
+			padding: 40px 36px;
+			text-align: center;
+			min-width: 300px;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		}
+		#login-box h2 {
+			color: #e0e0e0;
+			margin: 0 0 24px 0;
+			font-size: 22px;
+			font-weight: 500;
+		}
+		#login-box input {
+			width: 100%;
+			padding: 12px 16px;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 8px;
+			background: rgba(255, 255, 255, 0.06);
+			color: #fff;
+			font-size: 16px;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s;
+		}
+		#login-box input:focus {
+			border-color: rgba(100, 180, 255, 0.6);
+		}
+		#login-box input::placeholder { color: rgba(255, 255, 255, 0.35); }
+		#login-box button {
+			width: 100%;
+			margin-top: 16px;
+			padding: 12px;
+			border: none;
+			border-radius: 8px;
+			background: linear-gradient(135deg, #667eea, #764ba2);
+			color: #fff;
+			font-size: 16px;
+			cursor: pointer;
+			transition: opacity 0.2s;
+		}
+		#login-box button:hover { opacity: 0.85; }
+		#login-error {
+			color: #ff6b6b;
+			font-size: 14px;
+			margin-top: 12px;
+			min-height: 20px;
+		}
+	</style>
 	<script>
 		"use strict";
 		(() => {
@@ -107,5 +171,62 @@
 			};
 		})();
 	</script>
-	<script type="module" src="./noname/entry.ts"></script>
+	<script>
+		// ====== 登录验证配置 ======
+		// 设置访问密码: 修改下面的 SHA-256 哈希值
+		// 默认密码: noname
+		// 生成新哈希: 浏览器控制台运行
+		//   crypto.subtle.digest("SHA-256", new TextEncoder().encode("你的密码")).then(b => console.log(Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,"0")).join("")))
+		const PASSWORD_HASH = "c82b2b4275a63a897ab02840a3af2e76b0e20650cc79b80adc4558ab1b465b7c";
+		// 设为 false 可关闭登录验证
+		const AUTH_ENABLED = true;
+		// ====== 配置结束 ======
+
+		async function sha256(text) {
+			const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+			return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+		}
+
+		function loadGame() {
+			document.getElementById("login-gate").classList.add("hidden");
+			const s = document.createElement("script");
+			s.type = "module";
+			s.src = "./noname/entry.ts";
+			document.head.appendChild(s);
+		}
+
+		(function checkAuth() {
+			if (!AUTH_ENABLED) { loadGame(); return; }
+			if (localStorage.getItem("noname_auth") === PASSWORD_HASH) { loadGame(); return; }
+			// 显示登录界面，等待用户输入
+		})();
+
+		async function doLogin() {
+			const input = document.getElementById("login-pwd");
+			const error = document.getElementById("login-error");
+			const pwd = input.value.trim();
+			if (!pwd) { error.textContent = "请输入密码"; return; }
+			const hash = await sha256(pwd);
+			if (hash === PASSWORD_HASH) {
+				localStorage.setItem("noname_auth", hash);
+				loadGame();
+			} else {
+				error.textContent = "密码错误";
+				input.value = "";
+				input.focus();
+			}
+		}
+	</script>
 </head>
+
+<body>
+	<div id="login-gate">
+		<div id="login-box">
+			<h2>无名杀 - 访问验证</h2>
+			<input type="password" id="login-pwd" placeholder="请输入访问密码" autofocus
+				onkeydown="if(event.key==='Enter')doLogin()" />
+			<button onclick="doLogin()">进入游戏</button>
+			<div id="login-error"></div>
+		</div>
+	</div>
+</body>
