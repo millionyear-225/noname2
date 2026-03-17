@@ -34,12 +34,16 @@ export class LibInit {
 							} else if (index == 3) {
 								var noname_inited = localStorage.getItem("noname_inited");
 								var onlineKey = localStorage.getItem(lib.configprefix + "key");
+								var nonameAuth2 = localStorage.getItem("noname_auth");
 								localStorage.clear();
 								if (noname_inited) {
 									localStorage.setItem("noname_inited", noname_inited);
 								}
 								if (onlineKey) {
 									localStorage.setItem(lib.configprefix + "key", onlineKey);
+								}
+								if (nonameAuth2) {
+									localStorage.setItem("noname_auth", nonameAuth2);
 								}
 								if (indexedDB) {
 									indexedDB.deleteDatabase(lib.configprefix + "data");
@@ -61,9 +65,13 @@ export class LibInit {
 			} else {
 				if (confirm("游戏似乎未正常载入，是否重置游戏？")) {
 					var onlineKey = localStorage.getItem(lib.configprefix + "key");
+					var nonameAuth = localStorage.getItem("noname_auth");
 					localStorage.clear();
 					if (onlineKey) {
 						localStorage.setItem(lib.configprefix + "key", onlineKey);
+					}
+					if (nonameAuth) {
+						localStorage.setItem("noname_auth", nonameAuth);
 					}
 					if (indexedDB) {
 						indexedDB.deleteDatabase(lib.configprefix + "data");

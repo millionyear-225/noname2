@@ -22,11 +22,16 @@ export async function boot() {
 		lib.configprefix += "_";
 	}
 
+	const updateLoading = (text: string) => {
+		const el = document.getElementById("loading-text");
+		if (el) el.textContent = text;
+	};
+
 	await import("./polyfill.js");
 	// 设定游戏加载时间，超过时间未加载就提醒
 	const configLoadTime = parseInt(localStorage.getItem(lib.configprefix + "loadtime") || "10000");
 	// 现在不暴露到全局变量里了，直接传给onload
-	const resetGameTimeout = setTimeout(lib.init.reset, configLoadTime);
+	let resetGameTimeout = setTimeout(lib.init.reset, configLoadTime);
 
 	setBackground();
 
@@ -39,7 +44,13 @@ export async function boot() {
 	setWindowListener();
 	setOnError({ lib, game, get, _status });
 
+	updateLoading("正在加载配置...");
 	await loadConfig();
+
+	// 配置加载成功说明系统正常运行，清除短超时，设置更宽裕的超时
+	// 避免 confirm() 弹窗阻塞 JS 执行导致加载中断
+	clearTimeout(resetGameTimeout);
+	resetGameTimeout = setTimeout(lib.init.reset, 60000);
 
 	for (const name in get.config("translate")) {
 		lib.translate[name] = get.config("translate")[name];
@@ -100,9 +111,11 @@ export async function boot() {
 	}
 	game.layout = layout;
 
+	updateLoading("正在加载样式...");
 	await loadCss();
 	initSheet();
 
+	updateLoading("正在加载资源包...");
 	await lib.init.promises.js("game", "package");
 	const pack = window.noname_package;
 	delete window.noname_package;
@@ -292,6 +305,7 @@ export async function boot() {
 		}
 	});
 
+	updateLoading("正在加载扩展...");
 	const extensionlist = await getExtensionList();
 	if (extensionlist.length) {
 		_status.extensionLoading = [];
@@ -336,6 +350,7 @@ export async function boot() {
 		toLoad.push(importMode(config.get("mode")));
 	}
 
+	updateLoading("正在加载武将和卡牌...");
 	for (const cardPack of config.get("all").cards) {
 		toLoad.push(importCardPack(cardPack));
 	}
