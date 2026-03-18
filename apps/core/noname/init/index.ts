@@ -25,6 +25,7 @@ export async function boot() {
 	const updateLoading = (text: string) => {
 		const el = document.getElementById("loading-text");
 		if (el) el.textContent = text;
+		console.log(`[noname] ${text}`);
 	};
 
 	await import("./polyfill.js");
@@ -44,8 +45,10 @@ export async function boot() {
 	setWindowListener();
 	setOnError({ lib, game, get, _status });
 
+	console.time("[noname] loadConfig");
 	updateLoading("正在加载配置...");
 	await loadConfig();
+	console.timeEnd("[noname] loadConfig");
 
 	// 配置加载成功说明系统正常运行，清除短超时，设置更宽裕的超时
 	// 避免 confirm() 弹窗阻塞 JS 执行导致加载中断
@@ -63,10 +66,12 @@ export async function boot() {
 	const sandboxEnabled = !config.get("debug") && !get.is.safari();
 
 	// 初始化沙盒的Realms
+	console.time("[noname] sandbox+security");
 	await initializeSandboxRealms(sandboxEnabled);
 
 	// 初始化security
 	await security.initSecurity({ lib, game, ui, get, ai, _status });
+	console.timeEnd("[noname] sandbox+security");
 
 	CacheContext.setProxy({ lib, game, get });
 
@@ -111,10 +116,13 @@ export async function boot() {
 	}
 	game.layout = layout;
 
+	console.time("[noname] loadCss");
 	updateLoading("正在加载样式...");
 	await loadCss();
 	initSheet();
+	console.timeEnd("[noname] loadCss");
 
+	console.time("[noname] package+update");
 	updateLoading("正在加载资源包...");
 	await lib.init.promises.js("game", "package");
 	const pack = window.noname_package;
@@ -227,6 +235,8 @@ export async function boot() {
 		}
 	}
 
+	console.timeEnd("[noname] package+update");
+	console.time("[noname] update");
 	// 无名杀更新日志
 	await lib.init.promises.js("game", "update");
 	if (window.noname_update) {
@@ -305,6 +315,8 @@ export async function boot() {
 		}
 	});
 
+	console.timeEnd("[noname] update");
+	console.time("[noname] extensions");
 	updateLoading("正在加载扩展...");
 	const extensionlist = await getExtensionList();
 	if (extensionlist.length) {
@@ -318,6 +330,8 @@ export async function boot() {
 		}
 		delete _status.extensionLoading;
 	}
+
+	console.timeEnd("[noname] extensions");
 
 	if (Array.isArray(lib.onprepare) && lib.onprepare.length) {
 		_status.onprepare = Object.freeze(
@@ -350,6 +364,7 @@ export async function boot() {
 		toLoad.push(importMode(config.get("mode")));
 	}
 
+	console.time("[noname] packs");
 	updateLoading("正在加载武将和卡牌...");
 	for (const cardPack of config.get("all").cards) {
 		toLoad.push(importCardPack(cardPack));
@@ -361,7 +376,9 @@ export async function boot() {
 	toLoad.push(lib.init.promises.js(`${lib.assetURL}character`, "replace"));
 	toLoad.push(lib.init.promises.js(`${lib.assetURL}character`, "perfectPairs"));
 
+	console.log(`[noname] loading ${config.get("all").cards.length} card packs, ${config.get("all").characters.length} character packs`);
 	await Promise.allSettled(toLoad);
+	console.timeEnd("[noname] packs");
 
 	if (_status.importing) {
 		let promises = [];
