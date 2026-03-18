@@ -226,10 +226,9 @@
 			// 显示加载画面
 			const loading = document.getElementById("loading-screen");
 			if (loading) loading.classList.add("visible");
-			const s = document.createElement("script");
-			s.type = "module";
-			s.src = "./noname/entry.ts";
-			document.head.appendChild(s);
+			// 通知 entry.ts 认证已通过，可以开始加载游戏
+			window.__noname_auth_ok = true;
+			window.dispatchEvent(new Event("noname-auth-ok"));
 		}
 
 		(function checkAuth() {
@@ -274,4 +273,5 @@
 			<div id="login-error"></div>
 		</div>
 	</div>
+	<script type="module" src="./noname/entry.ts"></script>
 </body>
